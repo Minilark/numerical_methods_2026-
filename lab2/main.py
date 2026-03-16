@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# -----------------------
-# читання CSV
-# -----------------------
 def read_data(filename):
 
     x = []
@@ -23,9 +20,6 @@ def read_data(filename):
     return np.array(x), np.array(y)
 
 
-# -----------------------
-# таблиця розділених різниць
-# -----------------------
 def divided_differences(x, y):
 
     n = len(x)
@@ -42,9 +36,6 @@ def divided_differences(x, y):
     return table
 
 
-# -----------------------
-# поліном Ньютона
-# -----------------------
 def newton(x, table, value):
 
     n = len(x)
@@ -60,9 +51,6 @@ def newton(x, table, value):
     return result
 
 
-# -----------------------
-# факторіальні многочлени
-# -----------------------
 def factorial_interpolation(x, y, value):
 
     h = x[1] - x[0]
@@ -86,9 +74,6 @@ def factorial_interpolation(x, y, value):
     return result
 
 
-# -----------------------
-# пошук FPS=60
-# -----------------------
 def find_limit(x, table):
 
     for n in range(100,2000):
@@ -98,9 +83,6 @@ def find_limit(x, table):
             return n
 
 
-# -----------------------
-# графік FPS(n)
-# -----------------------
 def plot_interpolation(x, y, table):
 
     xs = np.linspace(min(x), max(x), 300)
@@ -119,9 +101,6 @@ def plot_interpolation(x, y, table):
     plt.show()
 
 
-# -----------------------
-# дослідження вузлів
-# -----------------------
 def node_research(x, y):
 
     nodes = [5,10,20]
@@ -159,9 +138,6 @@ def node_research(x, y):
     plt.show()
 
 
-# -----------------------
-# ефект Рунге
-# -----------------------
 def runge_effect(x, y):
 
     plt.figure()
@@ -190,9 +166,6 @@ def runge_effect(x, y):
     plt.show()
 
 
-# -----------------------
-# main
-# -----------------------
 
 x,y = read_data("data.csv")
 
