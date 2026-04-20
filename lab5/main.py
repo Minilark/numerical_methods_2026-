@@ -1,6 +1,24 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+from datetime import datetime
+
+def create_plots_folder():
+    """Створює папку для збереження графіків з часовою міткою"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_name = f"simpson_plots_{timestamp}"
+
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+        print(f"\nСтворено папку для графіків: {folder_name}/")
+    return folder_name
+
+def save_plot(folder_name, filename, dpi=300):
+    """Зберігає поточний графік у вказану папку"""
+    full_path = os.path.join(folder_name, filename)
+    plt.savefig(full_path, dpi=dpi, bbox_inches='tight')
+    print(f"Збережено: {full_path}")
 
 
 def f(x):
@@ -18,8 +36,6 @@ def exact_integral():
 
 I0 = exact_integral()
 
-
-# МЕТОД СІМПСОНА
 def simpson_integral(func, a, b, N):
     if N % 2 != 0:
         raise ValueError("Для формули Сімпсона N має бути парним.")
@@ -29,7 +45,7 @@ def simpson_integral(func, a, b, N):
     y = func(x)
 
     odd_sum = np.sum(y[1:N:2])
-    even_sum = np.sum(y[2:N-1:2])  # виправлено: до N-1
+    even_sum = np.sum(y[2:N - 1:2])
 
     return (h / 3.0) * (y[0] + 4.0 * odd_sum + 2.0 * even_sum + y[N])
 
@@ -60,7 +76,7 @@ def choose_N0(Nopt):
     if Nopt is None:
         return 8, False
     limit = Nopt / 10.0
-    candidates = [n for n in range(8, 1001, 8) if n < limit]  # виправлено: синтаксис
+    candidates = [n for n in range(8, 1001, 8) if n < limit]
     if len(candidates) > 0:
         return candidates[-1], True
     return 8, False
@@ -71,29 +87,23 @@ N0, N0_condition_ok = choose_N0(Nopt)
 I_N0 = simpson_integral(f, a, b, N0)
 eps0 = abs(I_N0 - I0)
 
-
-# МЕТОД РУНГЕ-РОМБЕРГА
 I_N0_half = simpson_integral(f, a, b, N0 // 2)
 I_RR = I_N0 + (I_N0 - I_N0_half) / 15.0
 epsR = abs(I_RR - I0)
 
-
-# МЕТОД ЕЙТКЕНА
 I_N0_quarter = simpson_integral(f, a, b, N0 // 4)
 numerator = abs(I_N0_half - I_N0_quarter)
 denominator = abs(I_N0 - I_N0_half)
 
-# запобігання діленню на нуль
 if denominator > 0 and numerator > 0:
     p_Aitken = math.log(numerator / denominator, 2.0)
 else:
-    p_Aitken = 1.0  # значення за замовчуванням
+    p_Aitken = 1.0
 
 I_Aitken = I_N0 + (I_N0 - I_N0_half) / (2.0 ** p_Aitken - 1.0)
 epsA = abs(I_Aitken - I0)
 
 
-# АДАПТИВНИЙ АЛГОРИТМ СІМПСОНА
 def adaptive_simpson(func, a, b, eps):
     cache = {}
     eval_count = 0
@@ -101,7 +111,7 @@ def adaptive_simpson(func, a, b, eps):
 
     def f_cached(x):
         nonlocal eval_count
-        key = round(x, 12)  # виправлено: менша точність для ключа
+        key = round(x, 12)
         if key not in cache:
             cache[key] = func(x)
             eval_count += 1
@@ -155,6 +165,7 @@ for eps_ad in adaptive_eps_values:
         "intervals": intervals
     })
 
+plots_folder = create_plots_folder()
 
 print("=" * 70)
 print("ЛАБОРАТОРНА РОБОТА №5")
@@ -207,8 +218,6 @@ for row in adaptive_results:
         f"eval_count={row['eval_count']}"
     )
 
-
-# ВІЗУАЛІЗАЦІЯ
 x_plot = np.linspace(a, b, 2000)
 y_plot = f(x_plot)
 
@@ -219,7 +228,7 @@ plt.xlabel("Час, x (год)")
 plt.ylabel("Навантаження, f(x)")
 plt.grid(True)
 plt.legend()
-plt.tight_layout()
+save_plot(plots_folder, "1_function_plot.png")
 plt.show()
 
 plt.figure(figsize=(10, 6))
@@ -230,7 +239,7 @@ plt.xlabel("Час, x (год)")
 plt.ylabel("Навантаження, f(x)")
 plt.grid(True)
 plt.legend()
-plt.tight_layout()
+save_plot(plots_folder, "2_integral_visualization.png")
 plt.show()
 
 x_acc = np.linspace(a, b, 4000)
@@ -247,7 +256,7 @@ plt.title("Накопичений інтеграл")
 plt.xlabel("Час, x (год)")
 plt.ylabel(r"$\int_0^x f(t)\,dt$")
 plt.grid(True)
-plt.tight_layout()
+save_plot(plots_folder, "3_cumulative_integral.png")
 plt.show()
 
 plt.figure(figsize=(10, 6))
@@ -258,7 +267,7 @@ plt.xlabel("N")
 plt.ylabel("I(N)")
 plt.grid(True)
 plt.legend()
-plt.tight_layout()
+save_plot(plots_folder, "4_I_vs_N.png")
 plt.show()
 
 plt.figure(figsize=(10, 6))
@@ -273,7 +282,7 @@ plt.xlabel("N")
 plt.ylabel("Похибка")
 plt.grid(True, which="both")
 plt.legend()
-plt.tight_layout()
+save_plot(plots_folder, "5_error_vs_N.png")
 plt.show()
 
 sample_N = [10, 20, 50, 100, 200, 500, 1000]
@@ -289,7 +298,7 @@ plt.xticks(x_bar, labels, rotation=30)
 plt.title("Порівняння наближених значень інтегралу з точним")
 plt.ylabel("Значення інтегралу")
 plt.grid(True, axis="y")
-plt.tight_layout()
+save_plot(plots_folder, "6_comparison_bar.png")
 plt.show()
 
 method_names = ["Сімпсон N0", "Рунге-Ромберг", "Ейткен"]
@@ -301,7 +310,7 @@ plt.yscale("log")
 plt.title("Порівняння похибок різних методів уточнення")
 plt.ylabel("Похибка")
 plt.grid(True, axis="y", which="both")
-plt.tight_layout()
+save_plot(plots_folder, "7_methods_comparison.png")
 plt.show()
 
 adaptive_eps_plot = [row["eps"] for row in adaptive_results]
@@ -314,7 +323,7 @@ plt.xlabel("Задане eps")
 plt.ylabel("Фактична похибка")
 plt.grid(True, which="both")
 plt.legend()
-plt.tight_layout()
+save_plot(plots_folder, "8_adaptive_error.png")
 plt.show()
 
 adaptive_eval_plot = [row["eval_count"] for row in adaptive_results]
@@ -325,7 +334,7 @@ plt.title("Залежність кількості обчислень f(x) ві�
 plt.xlabel("Задане eps")
 plt.ylabel("Кількість обчислень f(x)")
 plt.grid(True, which="both")
-plt.tight_layout()
+save_plot(plots_folder, "9_adaptive_evaluations.png")
 plt.show()
 
 if len(adaptive_results) > 0:
@@ -341,7 +350,7 @@ if len(adaptive_results) > 0:
     plt.xlabel("Положення підвідрізка")
     plt.ylabel("Довжина підвідрізка")
     plt.grid(True)
-    plt.tight_layout()
+    save_plot(plots_folder, "10_adaptive_intervals.png")
     plt.show()
 
 if N0 is not None:
@@ -356,7 +365,7 @@ if N0 is not None:
     plt.ylabel("f(x)")
     plt.grid(True)
     plt.legend()
-    plt.tight_layout()
+    save_plot(plots_folder, "11_simpson_nodes.png")
     plt.show()
 
 print("\n" + "=" * 70)
